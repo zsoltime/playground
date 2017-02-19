@@ -3,63 +3,92 @@
 const webpack = require('webpack');
 const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const autoprefixer = require('autoprefixer');
 
-const extractCSS = new ExtractTextPlugin('./style.css');
-const DIST_DIR = path.resolve(__dirname, 'dist');
-const SRC_DIR = path.resolve(__dirname, 'src');
+const extractSass = new ExtractTextPlugin('./css/style.css');
+const extractHTML = new ExtractTextPlugin('./index.html');
+
 const config = {
   entry: {
+    'index.html': path.resolve(__dirname, 'src/templates/index.pug'),
     'js/main.js': path.resolve(__dirname, 'src/app/index.js'),
+    'css/style.css': path.resolve(__dirname, 'src/sass/style.sass'),
+  },
   output: {
-    path: `${DIST_DIR}/app`,
-    filename: 'bundle.js',
-    publicPath: '/app/',
+    path: path.resolve(__dirname, 'dist'),
+    filename: '[name]',
+    // publicPath: '/app/',
   },
   devtool: 'source-map',
   devServer: {
-    contentBase: SRC_DIR,
+    contentBase: path.resolve(__dirname, 'dist'),
     inline: true,
-    watch: true,
-    colors: true,
-    port: 3000,
-    historyApiFallback: true,
+    // port: 3000,
   },
   module: {
-    preLoaders: [{
-      test: /\.js/,
-      loader: 'eslint',
+    rules: [{
+      test: /\.js$/,
       exclude: /node_modules/,
-    }],
-    loaders: [{
-      test: /\.js/,
-      include: SRC_DIR,
-      loader: 'babel',
-      query: {
-        presets: ['es2015', 'stage-2'],
+      enforce: 'pre',
+      use: {
+        loader: 'eslint-loader',
+        options: {
+          configFile: './.eslintrc.json',
+          failOnWarning: false,
+          failOnError: true,
+        },
+      },
+    }, {
+      test: /\.js$/,
+      include: path.resolve(__dirname, 'src/app'),
+      use: {
+        loader: 'babel-loader',
+        options: {
+          presets: ['es2015', 'stage-2'],
+        },
       },
     }, {
       test: /\.sass$/,
-      include: SRC_DIR,
-      loader: extractCSS.extract([
-        // 'style',
-        'css?sourceMap',
-        'postcss?sourceMap',
-        'sass?sourceMap',
-      ]),
+      include: path.resolve(__dirname, 'src/sass'),
+      use: extractSass.extract({
+        fallback: 'style-loader',
+        use: [{
+          loader: 'css-loader',
+          options: {
+            sourceMap: true,
+          },
+        }, {
+          loader: 'postcss-loader',
+          options: {
+            sourceMap: true,
+            plugins: () => [autoprefixer],
+          },
+        }, {
+          loader: 'sass-loader',
+          options: {
+            sourceMap: true,
+            incluePaths: ['sass'],
+            indentedSyntax: true,
+            outputStyle: 'expanded',
+          },
+        }],
+      }),
+    }, {
+      test: /\.pug$/,
+      include: path.resolve(__dirname, 'src/templates'),
+      use: extractHTML.extract({
+        use: [{
+          loader: 'pug-html-loader',
+          options: {
+            pretty: true,
+          },
+        }],
+      }),
     }],
   },
-  esLint: {
-    configFile: './.eslintrc',
-    failOnWarning: false,
-    failOnError: true,
-  },
-  sassLoader: {
-    incluePaths: ['sass'],
-    indentedSyntax: true,
-    outputStyle: 'expanded',
-  },
   plugins: [
-    extractCSS,
+    extractHTML,
+    extractSass,
   ],
 };
 
