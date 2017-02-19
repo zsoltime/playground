@@ -8,6 +8,7 @@
 ehthumbs.db
 Thumbs.db
 
+dist/
 node_modules/
 .sass-cache
 *.css.map
