@@ -5,13 +5,14 @@
   "main": "index.js",
   "scripts": {
     "server": "webpack-dev-server --host 0.0.0.0",
+    "start": "webpack --config webpack.config.js && yarn run server",
     "test": "",
     "build:dist": "webpack --config webpack.config.prod.js"
   },
   "repository": "https://github.com/zsoltime/playground.git",
   "author": "Zsolt Meszaros",
   "license": "MIT",
-  "dependencies": {
+  "devDependencies": {
     "autoprefixer": "^6.7.3",
     "babel-cli": "^6.23.0",
     "babel-core": "^6.23.1",
